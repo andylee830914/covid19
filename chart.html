@@ -101,7 +101,7 @@
 
                                 </div>
                             </div>
-                            <div class="caption">Plate 1</div>
+                            <div class="caption">Plate 1(◎ patients)</div>
                         </div>
                     </div>
                     <div class="row">
@@ -149,12 +149,16 @@
                             <h6>Summary</h6>
                         </div>
                         <div class="d-flex flex-column justify-content-end align-items-end">
-                
+
                         </div>
                     </div>
                     <canvas id="compare_plot1"></canvas>
                     <canvas id="compare_plot2"></canvas>
                     <canvas id="compare_plot3"></canvas>
+                </div>
+                <div id="compare2" style="display: none;">
+                    <div id="opt-Comp"></div>
+
                 </div>
             </div>
             <div class="col-3">
@@ -188,25 +192,33 @@
 					-->
                     <div class="form-group">
                         Sensitivity of Single Test: <font color=red><span id="opt-TPR"></span></font><br>
-                        <input name="range-TPR" value="95" id="var-TPR" type="range" class="form-control-range" min="0"
+                        <input name="range-TPR" value="98" id="var-TPR" type="range" class="form-control-range" min="0"
                             max="100" />
                     </div>
                     <div class="form-group">
                         Sensitivity of Group Test: <font color=red><span id="opt-GTPR"></span></font><br>
-                        <input name="range-GTPR" id="var-GTPR" value="95" type="range" class="form-control-range"
+                        <input name="range-GTPR" id="var-GTPR" value="90" type="range" class="form-control-range"
                             min="0" max="100" />
                     </div>
                     <div class="form-group">
                         Specificity of Single Test: <font color=red><span id="opt-TNR"></span></font><br>
-                        <input name="range-TNR" value="95" id="var-TNR" type="range" class="form-control-range" min="0"
+                        <input name="range-TNR" value="100" id="var-TNR" type="range" class="form-control-range" min="0"
                             max="100" />
                     </div>
                     <div class="form-group">
                         Specificity of Group Test: <font color=red><span id="opt-GTNR"></span></font><br>
-                        <input name="range-GTNR" id="var-GTNR" value="95" type="range" class="form-control-range"
+                        <input name="range-GTNR" id="var-GTNR" value="100" type="range" class="form-control-range"
                             min="0" max="100" />
                     </div>
-                    
+                    <div class="form-group">
+                        Number of confirm cases: <font color=red><span id="opt-NCC"></span></font><br>
+                        <input name="v-confirmcase" id="var-NCC" value="57731" type="input"
+                            class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        Number of tests: <font color=red><span id="opt-NTS"></span></font><br>
+                        <input name="v-tests" id="var-NTS" value="344409" type="input" class="form-control" />
+                    </div>
 
                 </form>
 
@@ -219,10 +231,11 @@
                     <input type="button" value="Summary" class="btn btn-outline-primary" onclick="Summary()">
                     <input type="button" value="Comparison" class="btn btn-outline-primary"
                         onclick="Methods_Comparison()">
+                    <input type="button" value="Comparison 2" class="btn btn-outline-primary"
+                        onclick="Methods_Comparison2()">
                 </div>
             </div>
         </div>
-        <div class="card-body" id="opt-Comp"></div>
         <!-- <span id="opt-GD"></span><br><span id="opt-G"></span><br> -->
         <!-- <span id="opt-GT1"></span><br>
         <span id="opt-GT2"></span><br>
@@ -240,7 +253,6 @@
     var ppatcolor = ["#20B157", "#D04753"]
 
     var cprofile = cprofile3;
-    var total_line_count = 0;
     var total_line = [];
 
     var ctx1 = document.getElementById('new_plot').getContext('2d');
@@ -248,13 +260,13 @@
     var comp2 = document.getElementById('compare_plot2').getContext('2d');
     var comp3 = document.getElementById('compare_plot3').getContext('2d');
     var scatterChart;
-    var compareChart=[];
+    var compareChart = [];
 
     $(document).ready(function () {
-        scatterChart = createPlot(ctx1, 'Infection level (p)', 'Ratio','');
-        compareChart[0] = createPlot(comp1, 'Infection level (p)', 'Ratio','Usage Ratio');
-        compareChart[1] = createPlot(comp2, 'Infection level (p)', 'Ratio','Sensitivity');
-        compareChart[2] = createPlot(comp3, 'Infection level (p)', 'Ratio','Specificity');
+        scatterChart = createPlot(ctx1, 'Infection level (p)', 'Ratio', '');
+        compareChart[0] = createPlot(comp1, 'Infection level (p)', 'Usage Ratio', 'Usage Ratio');
+        compareChart[1] = createPlot(comp2, 'Infection level (p)', 'Sensitivity', 'Sensitivity');
+        compareChart[2] = createPlot(comp3, 'Infection level (p)', 'Specificity', 'Specificity');
         $("#new_plot").dblclick(function () {
             scatterChart.resetZoom();
         });
@@ -269,7 +281,7 @@
         });
     });
 
-    function createPlot(context,x_label,y_label, title) {
+    function createPlot(context, x_label, y_label, title) {
         var newchart = new Chart(context, {
             type: 'scatter',
             options: {
@@ -288,16 +300,16 @@
                             labelString: y_label
                         },
                         type: 'linear',
-                        position: 'left',
-                        ticks: {
-                            max: 1,
-                            min: 0,
-                            stepSize: 0.1
-                        }
+                        position: 'left'
+                        //ticks: {
+                        //    max: 1,
+                        //    min: 0,
+                        //    stepSize: 0.1
+                        //}
                     }]
                 },
                 title: {
-                    display: (title?true:false),
+                    display: (title ? true : false),
                     text: title
                 },
                 plugins: {
@@ -357,7 +369,8 @@
         return newchart;
     }
 
-    function addData(chart, label, data, line_id) {
+    function addData(chart, label, data) {
+        var line_id = total_line[chart.id].length
         var index = chart.data.datasets.push(
             {
                 label: label,
@@ -376,11 +389,11 @@
         chart.update();
     }
 
-    function plotData(chart, label, data, line_id) {
+    function plotData(chart, label, data) {
         if (total_line[chart.id].indexOf(label) != -1) {
             updateData(chart, total_line[chart.id].indexOf(label), data);
         } else {
-            addData(chart, label, data, line_id);
+            addData(chart, label, data);
             total_line[chart.id].push(label);
         }
     }
@@ -569,22 +582,21 @@
         $("#platplot").show();
         $("#dashboard_new").hide();
         $("#dashboard_compare").hide();
+        $("#compare2").hide();
 
         var Kold = K;
         K = 1;
         $("#pool2").remove();
         $("#pool3").remove();
-        console.log(p);
-        console.log(N);
         if (method_selected == 1) {
             Group_Test_1W();
         } else if (method_selected == 2) {
-            $("#pool1").clone().attr('id', 'pool2').insertAfter("#pool1").children('.caption').html('Plate 2');
+            $("#pool1").clone().attr('id', 'pool2').insertAfter("#pool1").children('.caption').html('Plate 2(◎ patients)');
             Group_Test_2W();
 
         } else {
-            $("#pool1").clone().attr('id', 'pool2').insertAfter("#pool1").children('.caption').html('Plate 2');
-            $("#pool1").clone().attr('id', 'pool3').insertAfter("#pool2").children('.caption').html('Plate 3');
+            $("#pool1").clone().attr('id', 'pool2').insertAfter("#pool1").children('.caption').html('Plate 2(◎ patients)');
+            $("#pool1").clone().attr('id', 'pool3').insertAfter("#pool2").children('.caption').html('Plate 3(◎ patients)');
             Group_Test_3W();
 
         }
@@ -695,8 +707,6 @@
         return;
     }
     function Group_Test() {
-        // console.log(p);
-        // console.log(N);
         if (method_selected == 1) Group_Test_1W();
         else if (method_selected == 2) Group_Test_2W();
         else Group_Test_3W();
@@ -775,9 +785,9 @@
         GTTNR = 1.0 * N_FN / (N_FP + N_FN);
         GTRat = 1.0 * N_Test / (N * N * K);
         if (K == 1) {
-            s = "Total (Dorfman's Pooling Tests)/(Original Tests):" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%<br>"
-                + "<br>Sensitivity:" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:"
-                + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
+            s = "Usage Ratio:<br>" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%"
+                + "<br>Sensitivity:<br>" + N_TP + "/" + (N_TP + N_TN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:<br>"
+                + N_FN + "/" + (N_FP + N_FN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
             document.getElementById("opt-GT").innerHTML = s;
         }
         return;
@@ -860,9 +870,9 @@
         GTTNR = 1.0 * N_FN / (N_FP + N_FN);
         GTRat = 1.0 * N_Test / (N * N * K);
         if (K == 1) {
-            s = "Total (2W Group Tests)/(Original Tests):" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%<br>"
-                + "<br>Sensitivity:" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:"
-                + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
+            s = "Usage Ratio:<br>" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%"
+                + "<br>Sensitivity:<br>" + N_TP + "/" + (N_TP + N_TN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:<br>"
+                + N_FN + "/" + (N_FP + N_FN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
             document.getElementById("opt-GT").innerHTML = s;
         }
         return;
@@ -962,39 +972,53 @@
         GTTNR = 1.0 * N_FN / (N_FP + N_FN);
         GTRat = 1.0 * N_Test / (N * N * K);
         if (K == 1) {
-            s = "Total (3W Group Tests)/(Original Tests):" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%<br>"
-                + "<br>Sensitivity:" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:"
-                + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
+            s = "Usage Ratio:<br>" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%"
+                + "<br>Sensitivity:<br>" + N_TP + "/" + (N_TP + N_TN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:<br>"
+                + N_FN + "/" + (N_FP + N_FN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
             document.getElementById("opt-GT").innerHTML = s;
         }
         return;
     }
-    // function Methods_Comparison() {
-    //     $("#platplot").hide();
-    //     $("#dashboard_new").hide();
-    //     $("#dashboard_compare").show();
+    function Methods_Comparison2() {
+        $("#platplot").hide();
+        $("#dashboard_new").hide();
+        $("#dashboard_compare").hide();
+        $("#compare2").show();
 
-    //     p = Number(slider_p.value) / Number(slider_p.max);
-    //     N = Number(slider_N.value);
-    //     console.log(p);
-    //     console.log(N);
-    //     var Rat1, TPR1, TNR1, Rat2, TPR2, TNR2, Rat3, TPR3, TNR3;
-    //     Group_Test_1W(); Rat1 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR1 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR1 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
-    //     Group_Test_2W(); Rat2 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR2 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR2 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
-    //     Group_Test_3W(); Rat3 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR3 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR3 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
-    //     var s;
-    //     s = "<table><tr><td align='center'>" + K + " tests</td><td>Usage ratio</td><td>Sensitivity</td><td>Specificity</td></tr>"
-    //         + "<tr><td>Dorfman's pooling</td><td>" + Rat1 + "</td><td>" + TPR1 + "</td><td>" + TNR1 + "</td></tr>"
-    //         + "<tr><td>2-Grid Method</td><td>" + Rat2 + "</td><td>" + TPR2 + "</td><td>" + TNR2 + "</td></tr>"
-    //         + "<tr><td>3-Grid Method</td><td>" + Rat3 + "</td><td>" + TPR3 + "</td><td>" + TNR3 + "</td></tr>"
-    //         + "</table>";
-    //     document.getElementById("opt-Comp").innerHTML = s;
-    // }
+
+        var NCC = document.getElementById("var-NCC").value;
+        var NTS = document.getElementById("var-NTS").value;
+        var N0, K0;
+        K0 = K;
+        p = 1.0 * NCC / NTS;
+        N0 = Math.round(Math.sqrt(1.0 / p));
+        if (N0 < 4) N0 = 4;
+        N = N0;
+        console.log(p);
+        console.log(N);
+        var Rat1, TPR1, TNR1, Rat2, TPR2, TNR2, Rat3, TPR3, TNR3;
+        var vRat1, vTPR1, vTNR1, vRat2, vTPR2, vTNR2, vRat3, vTPR3, vTNR3;
+        N = N0; K = Math.floor(NTS / N / N) + 1; Group_Test_1W(); Rat1 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR1 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR1 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
+        vRat1 = GTRat; vTPR1 = GTTPR; vTNR1 = GTTNR;
+        N = 10; K = Math.floor(NTS / 100) + 1; Group_Test_2W(); Rat2 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR2 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR2 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
+        vRat2 = GTRat; vTPR2 = GTTPR; vTNR2 = GTTNR;
+        N = N0; K = Math.floor(NTS / N / N) + 1; Group_Test_3W(); Rat3 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR3 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR3 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
+        vRat3 = GTRat; vTPR3 = GTTPR; vTNR3 = GTTNR;
+        K = K0;
+        var s;
+        s = "<p align='center'>" + NCC + " confirmed cases in " + NTS + " tests<br><table class='table table-hover table-bordered'><thead><th align='center'> p = " + Math.round(10000.0 * p) / 100 + "% </th><th align='center'>Usage ratio/Number of tests</th><th align='center'>Sensitivity/missed cases</th><th align='center'>Specificity</th></thead>"
+            + "<tbody><tr><td align='center'>Dorfman's pooling</td><td align='center'>" + Rat1 + "/" + Math.round(NTS * vRat1) + "</td><td align='center'>" + TPR1 + "/" + Math.round(NCC * (1 - vTPR1)) + "</td><td align='center'>" + TNR1 + "</td></tr>"
+            + "<tr><td align='center'>2-Grid Method</td><td align='center'>" + Rat2 + "/" + Math.round(NTS * vRat2) + "</td><td align='center'>" + TPR2 + "/" + Math.round(NCC * (1 - vTPR2)) + "</td><td align='center'>" + TNR2 + "</td></tr>"
+            + "<tr><td align='center'>3-Grid Method (w=" + N0 + ")</td><td align='center'>" + Rat3 + "/" + Math.round(NTS * vRat3) + "</td><td align='center'>" + TPR3 + "/" + Math.round(NCC * (1 - vTPR3)) + "</td><td align='center'>" + TNR3 + "</td></tr>"
+            + "</tbody></table></p>";
+        document.getElementById("opt-Comp").innerHTML = s;
+    }
 
     function Summary() {
         $("#platplot").hide();
         $("#dashboard_new").show();
         $("#dashboard_compare").hide();
+        $("#compare2").hide();
 
 
         var maxP = Number(slider_N.max) - 5;
@@ -1045,123 +1069,127 @@
         //slider_N.value = N;
         N = Number(slider_N.value);
         //K = Number(slider_K.value);
-        plotData(scatterChart, "Sensitivity", PXY1,0);
-        plotData(scatterChart, "Specificity", PXY2,1);
-        plotData(scatterChart, "Usage Ratio", PXY3,2);
+        plotData(scatterChart, "Sensitivity", PXY1);
+        plotData(scatterChart, "Specificity", PXY2);
+        plotData(scatterChart, "Usage Ratio", PXY3);
         //document.getElementById("opt-N").innerHTML = N;
         //document.getElementById("opt-K").innerHTML = K;
         return;
     }
 
     function Methods_Comparison() {
-            $("#platplot").hide();
-            $("#dashboard_new").hide();
-            $("#dashboard_compare").show();
+        $("#platplot").hide();
+        $("#dashboard_new").hide();
+        $("#dashboard_compare").show();
+        $("#compare2").hide();
 
 
-            var maxP = Number(slider_N.max) - 5;
-            var p_old = p;
-            var i;
-            var P_X = new Array(maxP);
-            // var P_Y1 = new Array(maxP), P_Y2 = new Array(maxP), P_Y3 = new Array(maxP);
-            var p_preset = [0.001, 0.002, 0.004, 0.008, 0.01, 0.02, 0.04, 0.08, 0.1, 0.2];
+        var maxP = Number(slider_N.max) - 5;
+        var p_old = p;
+        var i, N0;
+        var P_X = new Array(maxP);
+        // var P_Y1 = new Array(maxP), P_Y2 = new Array(maxP), P_Y3 = new Array(maxP);
+        var p_preset = [0.001, 0.002, 0.004, 0.008, 0.01, 0.02, 0.04, 0.08, 0.1, 0.2];
 
-            console.log(p_preset[0]);
-            //K = Number(slider_K.max);
-            //slider_K.value = K;
+        console.log(p_preset[0]);
+        //K = Number(slider_K.max);
+        //slider_K.value = K;
 
-            var PXY11 = [], PXY12 = [], PXY13 = [];
-            var PXY21 = [], PXY22 = [], PXY23 = [];
-            var PXY31 = [], PXY32 = [], PXY33 = [];
-            for (i = 0; i < maxP; ++i) {
-                //N = i + 5;
+        var PXY11 = [], PXY12 = [], PXY13 = [];
+        var PXY21 = [], PXY22 = [], PXY23 = [];
+        var PXY31 = [], PXY32 = [], PXY33 = [];
+        for (i = 0; i < maxP; ++i) {
+            //N = i + 5;
 
-                // p = p_preset[i];
-                p = 1.0 / (i + 5) / (i + 5);
-                P_X[i] = p;//1.0/N/N;
-                N = Math.round(Math.sqrt(1.0 / p));
-                if (N < 5) N = 5;
-                Group_Test_1W();
-                PXY11.push(
-                    {
-                        x: P_X[i],
-                        y: GTRat
-                    }
-                );
-                PXY21.push(
-                    {
-                        x: P_X[i],
-                        y: GTTPR
-                    }
-                );
-                PXY31.push(
-                    {
-                        x: P_X[i],
-                        y: GTTNR
-                    }
-                );
-                Group_Test_2W();
-                PXY12.push(
-                    {
-                        x: P_X[i],
-                        y: GTRat
-                    }
-                );
-                PXY22.push(
-                    {
-                        x: P_X[i],
-                        y: GTTPR
-                    }
-                );
-                PXY32.push(
-                    {
-                        x: P_X[i],
-                        y: GTTNR
-                    }
-                );
-                Group_Test_3W();
-                PXY13.push(
-                    {
-                        x: P_X[i],
-                        y: GTRat
-                    }
-                );
-                PXY23.push(
-                    {
-                        x: P_X[i],
-                        y: GTTPR
-                    }
-                );
-                PXY33.push(
-                    {
-                        x: P_X[i],
-                        y: GTTNR
-                    }
-                );
+            // p = p_preset[i];
+            p = 1.0 / (i + 5) / (i + 5);
+            P_X[i] = p;//1.0/N/N;
+            N = Math.round(Math.sqrt(1.0 / p));
+            if (N < 5) N = 5;
+            Group_Test_1W();
+            PXY11.push(
+                {
+                    x: P_X[i],
+                    y: GTRat
+                }
+            );
+            PXY21.push(
+                {
+                    x: P_X[i],
+                    y: GTTPR
+                }
+            );
+            PXY31.push(
+                {
+                    x: P_X[i],
+                    y: GTTNR
+                }
+            );
+            //N0 = N;
+            //N = 10;
+            Group_Test_2W();
+            PXY12.push(
+                {
+                    x: P_X[i],
+                    y: GTRat
+                }
+            );
+            PXY22.push(
+                {
+                    x: P_X[i],
+                    y: GTTPR
+                }
+            );
+            PXY32.push(
+                {
+                    x: P_X[i],
+                    y: GTTNR
+                }
+            );
+            //N = N0;
+            Group_Test_3W();
+            PXY13.push(
+                {
+                    x: P_X[i],
+                    y: GTRat
+                }
+            );
+            PXY23.push(
+                {
+                    x: P_X[i],
+                    y: GTTPR
+                }
+            );
+            PXY33.push(
+                {
+                    x: P_X[i],
+                    y: GTTNR
+                }
+            );
 
-            }
-            p = p_old;
-            //slider_N.value = N;
-            N = Number(slider_N.value);
-            //K = Number(slider_K.value);
-            
-            
-            
-            plotData(compareChart[0], "Dorfman", PXY11,0);
-            plotData(compareChart[0], "2-Grid",  PXY12,1);
-            plotData(compareChart[0], "3-Grid",  PXY13,2);
-
-            plotData(compareChart[1], "Dorfman", PXY21, 0);
-            plotData(compareChart[1], "2-Grid",  PXY22, 1);
-            plotData(compareChart[1], "3-Grid",  PXY23, 2);
-
-            plotData(compareChart[2], "Dorfman", PXY31, 0);
-            plotData(compareChart[2], "2-Grid",  PXY32, 1);
-            plotData(compareChart[2], "3-Grid",  PXY33, 2);
-            //document.getElementById("opt-N").innerHTML = N;
-            //document.getElementById("opt-K").innerHTML = K;
-            return;
         }
+        p = p_old;
+        //slider_N.value = N;
+        N = Number(slider_N.value);
+        //K = Number(slider_K.value);
+
+
+
+        plotData(compareChart[0], "Dorfman", PXY11);
+        plotData(compareChart[0], "2-Grid", PXY12);
+        plotData(compareChart[0], "3-Grid", PXY13);
+
+        plotData(compareChart[1], "Dorfman", PXY21);
+        plotData(compareChart[1], "2-Grid", PXY22);
+        plotData(compareChart[1], "3-Grid", PXY23);
+
+        plotData(compareChart[2], "Dorfman", PXY31);
+        plotData(compareChart[2], "2-Grid", PXY32);
+        plotData(compareChart[2], "3-Grid", PXY33);
+        //document.getElementById("opt-N").innerHTML = N;
+        //document.getElementById("opt-K").innerHTML = K;
+        return;
+    }
 
 </script>
 
