@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/Chart.min.css">
+    <link rel="stylesheet" href="css/app.css">
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <!-- <script src="js/Chart.bundle.min.js"></script> -->
+    <script src="js/bootstrap.min.js"></script>
+
+    <script src="js/Chart.min.js"></script>
+    <script src="js/chartjs-plugin-zoom.js"></script>
+    <link rel="stylesheet" href="katex/katex.min.css">
+    <script src="katex/katex.min.js"></script>
+    <script src="katex/contrib/auto-render.min.js"></script>
+
+    <style>
+        .frame {
+            margin-top: 50px;
+            padding: 20px;
+            display: flex;
+            justify-content: left;
+        }
+
+        .frame-left {
+            border-radius: 10px 0 0 10px;
+            background: #ae84ba;
+            width: 180px;
+            height: 380px;
+            float: left;
+            margin-bottom: 50px;
+        }
+
+        .frame-right {
+            border-radius: 0px 10px 10px 0px;
+            background: #61badd;
+            width: 180px;
+            height: 380px;
+            float: left;
+            margin-bottom: 50px;
+        }
+
+        .frame-inner-left {
+            border-radius: 10px 0 0 10px;
+            background: #9962a8;
+            width: 100px;
+            height: 150px;
+            float: right;
+            position: relative;
+            top: 115px;
+        }
+
+        .frame-inner-right {
+            border-radius: 0px 10px 10px 0px;
+            background: #2993be;
+            width: 100px;
+            height: 150px;
+            float: left;
+            position: relative;
+            top: 115px;
+        }
+
+        .infected {
+            border-radius: 20px;
+            background: #404040;
+            width: 20px;
+            height: 20px;
+            position: relative;
+            z-index: 2;
+
+        }
+
+        .normal {
+            border-radius: 20px;
+            background: #dfdfdf;
+            width: 20px;
+            height: 20px;
+            position: relative;
+            z-index: 2;
+
+        }
+
+        .frame-selected {
+            border-radius: 10px;
+            background: #ffffff00;
+            width: 200px;
+            height: 150px;
+            top: 115px;
+            left: 280px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .frame-selected:hover {
+            box-shadow: 0px 0px 10px rgba(20%, 20%, 40%, 0.5);
+        }
+
+        .mytooltip {
+
+            position: relative;
+            width: 0px;
+            height: 500px;
+        }
+
+        .mytooltip h4 {
+            color: #404040;
+            font-size: medium;
+            position: relative;
+            float: center;
+            /* display: block; */
+            z-index: 10;
+            top: -40px;
+            left: 200px;
+            width: 360px;
+            text-align: center;
+        }
+        .operation{
+            margin-left: 20px;
+        }
+        .operation > .mybtn{
+            margin-bottom: 5px;
+        }
+        .addshadow{
+            box-shadow: 0px 0px 20px rgba(51, 51, 102, 0.659);
+            /* z-index: 1; */
+        }
+
+        .infotext{
+            margin-top: -100px;
+            position: relative;
+            width: 100%;
+        }
+        .infotext > div{
+            width: 80%;
+            text-align: justify;
+        }
+    </style>
+    <script>
+        var sepc_isactive = 0;
+        var sens_isactive = 0;
+
+        $(document).ready(function () {
+            $('.normal').hover(
+                function () {
+                    $('.normal').css('background-color', 'khaki');
+                    $('#tooltiptext').html('<br>normal');
+                }, function () {
+                    $('.normal').css('background-color', '#dfdfdf');
+                    $('#tooltiptext').text('');
+                    if (sepc_isactive == 1) {
+                        active_spec();
+                    }
+                    if (sens_isactive == 1) {
+                        active_sens();
+                    }
+
+                }
+            )
+            $('.infected').hover(
+                function () {
+                    $('.infected').css('background-color', 'Moccasin');
+                    $('#tooltiptext').html('<br>infected');
+                }, function () {
+                    $('.infected').css('background-color', '#404040');
+                    $('#tooltiptext').text('');
+                    if (sepc_isactive == 1) {
+                        active_spec();
+                    }
+                    if (sens_isactive == 1) {
+                        active_sens();
+                    }
+
+                }
+            )
+            $('.frame-selected').hover(
+                function () {
+                    $('.infected').filter('.positive').css('background-color', 'PaleVioletRed');
+                    $('.normal').filter('.positive').css('background-color', 'PaleVioletRed');
+                    $('#tooltiptext').html('selected elements <br>(elements identified  as positive)');
+
+                }, function () {
+                    $('.infected').filter('.positive').css('background-color', '#404040');
+                    $('.normal').filter('.positive').css('background-color', '#dfdfdf');
+                    $('#tooltiptext').text('');
+                    if (sepc_isactive == 1) {
+                        active_spec();
+                    }
+                    if (sens_isactive == 1) {
+                        active_sens();
+                    }
+
+
+                }
+            )
+            $('#sens').tooltip('enable');
+            $('#spec').tooltip('enable');
+            function reset() {
+                $(".frame-inner-left").removeClass('addshadow');
+                $('.infected').css('background-color', '#404040');
+                $("#sens_text").hide();
+                $(".frame-inner-right").removeClass('addshadow');
+                $('.normal').css('background-color', '#dfdfdf');
+                $("#spec_text").hide();
+                sepc_isactive = 0;
+                sens_isactive = 0;
+            }
+            function active_sens() {
+                $(".frame-inner-left").addClass('addshadow');
+                $('.infected').css('background-color', 'Moccasin');
+                $('.infected').filter('.positive').css('background-color', 'PaleVioletRed');
+                $("#sens_text").show()
+                sens_isactive = 1;
+            }
+            function active_spec() {
+                $(".frame-inner-right").addClass('addshadow');
+                $('.normal').css('background-color', 'khaki');
+                $('.normal').filter('.positive').css('background-color', 'PaleVioletRed');
+                $("#spec_text").show()
+                sepc_isactive = 1;
+            }
+            $("#sens").click(function(e){
+                e.stopPropagation();
+                reset();
+                active_sens();
+            })
+            $("#spec").click(function (e) {
+                e.stopPropagation();
+                reset();
+                active_spec();
+            })
+            $("body").click(function () {
+                reset();
+            })
+
+            
+            
+        })
+        $(document).ready(function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false },
+                    { left: "\\[", right: "\\]", display: true }
+                ]
+            });
+        });
+
+    </script>
+
+
+    <!-- Latest compiled and minified JavaScript -->
+    <title>Group Testing for COVID-19</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <a class="navbar-brand" href="#">Group Testing for COVID-19</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item  active">
+                    <a class="nav-link" href="index.html">Introduction<span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="chart.html">Simulation</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <main role="main" class="container">
+        <h4>Without testing there is no data</h4>
+        <p>“Why is data on testing important? No country knows the total number of people infected with COVID-19. All we
+            know is
+            the infection status of those who have been tested. All those who have a lab-confirmed infection are counted
+            as
+            confirmed cases. This means that the counts of confirmed cases depend on how much a country actually tests.
+
+            Testing is our window onto the pandemic and how it is spreading. Without data on who is infected by the
+            virus we have no
+            way of understanding the pandemic. Without this data we can not know which countries are doing well, and
+            which are just
+            underreporting cases and deaths.” - Our World in Data</p>
+
+        <h4>Group testing vs individual testing</h4>
+        <p>Many countries have used reverse transcriptase polymerase chain reaction (RT-PCR) tests for the diagnosis of
+            SARS-CoV-2.
+            An important feature of RT-PCR assay is rapid and highly sensitive. However, most testing strategies rely on
+            individual
+            tests of cases with restrictive diagnostic criteria. Now, attentions also turn to tests of cases who have
+            mild or
+            moderate symptoms, or are asymptomatic although tests on such cases are limited. Testing these cases is
+            important to
+            learn the actual number of people infected and slow the spread of COVID-19. Because the amount of cases to
+            test is
+            relatively large, an alternative strategy called group testing has been proposed. Group testing is
+            well-suited to these
+            cases since it is considered most efficient when the infection level is low. This interactive web is
+            designed for
+            understanding the power of group testing for COVID-19. Three kinds of group testing strategies are compared,
+            including
+            Dorfman’s pooling method, the grid method and the triple grid method. For details of the methodology, please
+            refer to
+            our work.</p>
+
+
+        <div class="frame">
+            <div class="mytooltip">
+                <h4 id="tooltiptext"><br>(moving your mouse to interact)</h4>
+            </div>
+            <div class="frame-selected">
+
+            </div>
+            <div class="frame-left">
+                <div class="frame-inner-left">
+                    <div class="infected positive" style="top: 10px;left: 40px;"></div>
+                    <div class="infected positive" style="top: 20px;left: 10px;"></div>
+                    <div class="infected positive" style="top: -10px;left: 70px;"></div>
+                    <div class="infected positive" style="top: 0px;left: 40px;"></div>
+                    <div class="infected positive" style="top: 0px;left: 65px;"></div>
+                    <div class="infected positive" style="top: 0px;left: 15px;"></div>
+                    <div class="infected positive" style="top: 0px;left: 50px;"></div>
+                </div>
+                <div class="infected" style="top: 300px;left: 40px;"></div>
+
+            </div>
+            <div class="frame-right">
+                <div class="frame-inner-right">
+                    <div class="normal positive" style="top: 40px;left: 60px;"></div>
+                    <div class="normal positive" style="top: 80px;left: 30px;"></div>
+                </div>
+                <div class="normal" style="top: 40px;left: 90px;"></div>
+                <div class="normal" style="top: 50px;left: 90px;"></div>
+                <div class="normal" style="top: 30px;left: 40px;"></div>
+                <div class="normal" style="top: 80px;left: 135px;"></div>
+                <div class="normal" style="top: 120px;left: 110px;"></div>
+                <div class="normal" style="top: 180px;left: 80px;"></div>
+                <div class="normal" style="top: 180px;left: 30px;"></div>
+                <div class="normal" style="top: 180px;left: 130px;"></div>
+            </div>
+            <div class="operation">
+                <div class="input-group mybtn" role="group" aria-label="Vertical button group">
+                    <button type="button" class="btn btn-outline-danger" id="sens" data-toggle="tooltip" data-placement="right" title="How many infected samples are identified correctly?">Sensitivity</button>
+                </div>
+                <div class="input-group mybtn" role="group" aria-label="Vertical button group">
+                    <button type="button" class="btn btn-outline-primary" id="spec" data-toggle="tooltip" data-placement="right" title="How many normal samples are identified correctly?">Specificity</button>
+                </div>
+                <div id="sens_text" style="display: none;">
+                    $\text{Sensitivity} = \frac{7}{8}$<br>
+                    $\text{FNR} = 1 － \text{Sensitivity} = \frac{1}{8}$
+                </div>
+                <div id="spec_text" style="display: none;">
+                    $\text{Specificity} = \frac{8}{10}$<br>
+                    $\text{FPR} = 1 － \text{Specificity} = \frac{2}{10}$
+
+                </div>
+            </div>
+            
+        </div>
+        <div class="infotext row  justify-content-md-center">
+            <div class="col-md-auto">Sensitivity and specificity can be confusing terms that may lead to misunderstanding. This figure explains these
+                notions
+                of statistical measures of test accuracy, including FPR (false positive rate) and FNR (false negative rate).
+                Although
+                (sensitivity, FNR) and (specificity, FPR) are simply the inverse of each other, in order to distinguish the
+                notions
+                on
+                tests or strategies that we are talking about, sensitivity and specificity are only used for strategy outcomes
+                while
+                FNR
+                and FPR are used for test outcomes.</div>
+        </div>
+        
+    </main>
+
+</body>
+
+
+
+</html>
