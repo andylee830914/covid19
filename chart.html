@@ -1006,10 +1006,10 @@
         vRat3 = GTRat; vTPR3 = GTTPR; vTNR3 = GTTNR;
         K = K0;
         var s;
-        s = "<p align='center'>" + NCC + " confirmed cases in " + NTS + " tests<br><table class='table table-hover table-bordered'><thead><th align='center'> p = " + Math.round(10000.0 * p) / 100 + "% </th><th align='center'>Usage ratio/Number of tests</th><th align='center'>Sensitivity/missed cases</th><th align='center'>Specificity</th></thead>"
-            + "<tbody><tr><td align='center'>Dorfman's pooling</td><td align='center'>" + Rat1 + "/" + Math.round(NTS * vRat1) + "</td><td align='center'>" + TPR1 + "/" + Math.round(NCC * (1 - vTPR1)) + "</td><td align='center'>" + TNR1 + "</td></tr>"
-            + "<tr><td align='center'>2-Grid Method</td><td align='center'>" + Rat2 + "/" + Math.round(NTS * vRat2) + "</td><td align='center'>" + TPR2 + "/" + Math.round(NCC * (1 - vTPR2)) + "</td><td align='center'>" + TNR2 + "</td></tr>"
-            + "<tr><td align='center'>3-Grid Method (w=" + N0 + ")</td><td align='center'>" + Rat3 + "/" + Math.round(NTS * vRat3) + "</td><td align='center'>" + TPR3 + "/" + Math.round(NCC * (1 - vTPR3)) + "</td><td align='center'>" + TNR3 + "</td></tr>"
+        s = "<p  class='text-center'>" + NCC + " confirmed cases in " + NTS + " tests<br><table class='table table-hover table-bordered'><thead><th class='text-center'> p = " + Math.round(10000.0 * p) / 100 + "% </th><th  class='text-center'>Usage ratio/Number of tests</th><th  class='text-center'>Sensitivity/missed cases</th><th  class='text-center'>Specificity</th></thead>"
+            + "<tbody><tr><td  class='text-center'>Dorfman's pooling</td><td  class='text-center'>" + Rat1 + "/" + Math.round(NTS * vRat1) + "</td><td  class='text-center'>" + TPR1 + "/" + Math.round(NCC * (1 - vTPR1)) + "</td><td  class='text-center'>" + TNR1 + "</td></tr>"
+            + "<tr><td  class='text-center'>2-Grid Method</td><td  class='text-center'>" + Rat2 + "/" + Math.round(NTS * vRat2) + "</td><td  class='text-center'>" + TPR2 + "/" + Math.round(NCC * (1 - vTPR2)) + "</td><td  class='text-center'>" + TNR2 + "</td></tr>"
+            + "<tr><td  class='text-center'>3-Grid Method (w=" + N0 + ")</td><td  class='text-center'>" + Rat3 + "/" + Math.round(NTS * vRat3) + "</td><td  class='text-center'>" + TPR3 + "/" + Math.round(NCC * (1 - vTPR3)) + "</td><td  class='text-center'>" + TNR3 + "</td></tr>"
             + "</tbody></table></p>";
         document.getElementById("opt-Comp").innerHTML = s;
     }
