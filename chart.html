@@ -15,7 +15,7 @@
     <script src="js/Chart.min.js"></script>
     <script src="js/chartjs-plugin-zoom.js"></script>
 
-    
+
     <!-- Latest compiled and minified JavaScript -->
     <title>Group Testing for COVID-19</title>
     <style>
@@ -68,6 +68,13 @@
 
         .row {
             padding-bottom: 20px;
+        }
+
+        table.table-bordered > thead > tr > th{
+            border:1px solid rgb(96,96,96);
+        }
+        table.table-bordered > tbody > tr > td{
+            border:1px solid rgb(96,96,96);
         }
     </style>
 </head>
@@ -141,12 +148,12 @@
 
                         </div>
                     </div>
-                    <canvas id="new_plot"></canvas>
+                    <canvas id="summary_plot"></canvas>
                 </div>
                 <div id="dashboard_compare" class="dashboard jumbotron" style="display: none;">
                     <div class="row plot_title">
                         <div class="d-flex flex-fill align-items-center">
-                            <h6>Summary</h6>
+                            <h6>Methods Comparison</h6>
                         </div>
                         <div class="d-flex flex-column justify-content-end align-items-end">
 
@@ -157,8 +164,9 @@
                     <canvas id="compare_plot3"></canvas>
                 </div>
                 <div id="compare2" style="display: none;">
-                    <div id="opt-Comp"></div>
-
+                    <div id="dashboard_new" class="dashboard jumbotron">
+                        <div id="opt-Comp"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-3">
@@ -178,11 +186,11 @@
                         </div>
                     </div>
                     <div class="form-group">Infection level (p): <font color=red><span id="opt-p"></span></font><br>
-                        <input name="range-p" id="var-p" value="40" type="range" class="form-control-range" min="1"
+                        <input name="range-p" id="var-p" value="40" type="range" class="form-control-range custom-range" min="1"
                             max="1000" />
                     </div>
                     <div class="form-group">Pool size (w): <font color=red><span id="opt-N"></span></font><br>
-                        <input name="range-N" id="var-N" value="5" type="range" class="form-control-range" min="5"
+                        <input name="range-N" id="var-N" value="5" type="range" class="form-control-range custom-range" min="5"
                             max="32" />
                     </div>
                     <!--
@@ -192,29 +200,29 @@
 					-->
                     <div class="form-group">
                         FNR of Single Test: <font color=red><span id="opt-FNR"></span></font><br>
-                        <input name="range-FNR" value="5" id="var-FNR" type="range" class="form-control-range" min="0"
+                        <input name="range-FNR" value="5" id="var-FNR" type="range" class="form-control-range custom-range" min="0"
                             max="100" />
                     </div>
                     <div class="form-group">
                         FNR of Group Test: <font color=red><span id="opt-GFNR"></span></font><br>
-                        <input name="range-GFNR" id="var-GFNR" value="10" type="range" class="form-control-range"
+                        <input name="range-GFNR" id="var-GFNR" value="10" type="range" class="form-control-range custom-range"
                             min="0" max="100" />
                     </div>
                     <div class="form-group">
                         FPR of Single Test: <font color=red><span id="opt-FPR"></span></font><br>
-                        <input name="range-FPR" value="0" id="var-FPR" type="range" class="form-control-range" min="0"
+                        <input name="range-FPR" value="0" id="var-FPR" type="range" class="form-control-range custom-range" min="0"
                             max="100" />
                     </div>
                     <div class="form-group">
                         FPR of Group Test: <font color=red><span id="opt-GFPR"></span></font><br>
-                        <input name="range-GFPR" id="var-GFPR" value="0" type="range" class="form-control-range" min="0"
+                        <input name="range-GFPR" id="var-GFPR" value="0" type="range" class="form-control-range custom-range" min="0"
                             max="100" />
                     </div>
-                    <div class="form-group">
+                    <div class="form-group compare2" style="display: none;">
                         Number of confirm cases: <font color=red><span id="opt-NCC"></span></font><br>
                         <input name="v-confirmcase" id="var-NCC" value="17652" type="input" class="form-control" />
                     </div>
-                    <div class="form-group">
+                    <div class="form-group compare2"  style="display: none;">
                         Number of tests: <font color=red><span id="opt-NTS"></span></font><br>
                         <input name="v-tests" id="var-NTS" value="606375" type="input" class="form-control" />
                     </div>
@@ -254,7 +262,7 @@
     var cprofile = cprofile3;
     var total_line = [];
 
-    var ctx1 = document.getElementById('new_plot').getContext('2d');
+    var ctx1 = document.getElementById('summary_plot').getContext('2d');
     var comp1 = document.getElementById('compare_plot1').getContext('2d');
     var comp2 = document.getElementById('compare_plot2').getContext('2d');
     var comp3 = document.getElementById('compare_plot3').getContext('2d');
@@ -266,7 +274,7 @@
         compareChart[0] = createPlot(comp1, 'Infection level (p)', 'Usage Ratio', 'Usage Ratio');
         compareChart[1] = createPlot(comp2, 'Infection level (p)', 'Sensitivity', 'Sensitivity');
         compareChart[2] = createPlot(comp3, 'Infection level (p)', 'Specificity', 'Specificity');
-        $("#new_plot").dblclick(function () {
+        $("#summary_plot").dblclick(function () {
             scatterChart.resetZoom();
         });
         $("#compare_plot1").dblclick(function () {
@@ -583,10 +591,13 @@
     function test_once(opt) {
         p = Number(slider_p.value) / Number(slider_p.max);
         N = Number(slider_N.value);
-        $("#platplot").show();
         $("#dashboard_new").hide();
         $("#dashboard_compare").hide();
         $("#compare2").hide();
+        $(".compare2").hide();
+
+        $("#platplot").show();
+
 
         var Kold = K;
         K = 1;
@@ -1036,6 +1047,7 @@
         $("#dashboard_new").hide();
         $("#dashboard_compare").hide();
         $("#compare2").show();
+        $(".compare2").show();
 
 
         var NCC = document.getElementById("var-NCC").value;
@@ -1067,6 +1079,7 @@
         $("#platplot").hide();
         $("#dashboard_new").show();
         $("#dashboard_compare").hide();
+        $(".compare2").hide();
         $("#compare2").hide();
 
 
@@ -1131,6 +1144,8 @@
         $("#dashboard_new").hide();
         $("#dashboard_compare").show();
         $("#compare2").hide();
+        $(".compare2").hide();
+
 
 
         var maxP = Number(slider_N.max) - 5;
