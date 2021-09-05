@@ -189,8 +189,8 @@
                         <input name="range-p" id="var-p" value="40" type="range" class="form-control-range custom-range" min="1"
                             max="1000" />
                     </div>
-                    <div class="form-group">Pool size (w): <font color=red><span id="opt-N"></span></font><br>
-                        <input name="range-N" id="var-N" value="5" type="range" class="form-control-range custom-range" min="5"
+                    <div class="form-group">Pool size of Dorfman's method / (w)idth of grid: <font color=red><span id="opt-N"></span></font><br>
+                        <input name="range-N" id="var-N" value="5" type="range" class="form-control-range custom-range" min="4"
                             max="32" />
                     </div>
                     <!--
@@ -426,6 +426,7 @@
     slider_GFPR.min = slider_FPR.value;
     var p = Number(slider_p.value) / Number(slider_p.max);
     var N = Number(slider_N.value);
+	var N1 = N;
     var K = 1000;//Number(slider_K.value);
     var TPR = 1.0 - Number(slider_FNR.value) / 100.0;
     var GTPR = 1.0 - Number(slider_GFNR.value) / 100.0;
@@ -513,8 +514,8 @@
 
     slider_p.oninput = function () {
         p = Number(slider_p.value) / Number(slider_p.max);
-        N = Math.floor(Math.sqrt(1.0 / p));
-        if (N < 5) N = 5;
+        N = Math.ceil(Math.sqrt(1.0 / p));
+        if (N < 4) N = 4;
         if (N > slider_N.max) N = slider_N.max;
         slider_N.value = N;
         document.getElementById("opt-N").innerHTML = N;
@@ -604,7 +605,9 @@
         $("#pool2").remove();
         $("#pool3").remove();
         if (method_selected == 1) {
+			N1 = 1;
             Group_Test_1W();
+			N1 = N;
         } else if (method_selected == 2) {
             $("#pool1").clone().attr('id', 'pool2').insertAfter("#pool1").children('.caption').html('Plate 2(◎ patients)');
             Group_Test_2W();
@@ -736,14 +739,14 @@
         var GNTNR = GTNR;//1.0*(TNR*(NM-N)+GTNR*(N-1))/(NM-1);
         for (k = 0; k < K; ++k) {
             generate(0);
-            for (i = 0; i < N; ++i) {
+            for (i = 0; i < N1; ++i) {
                 for (j = 0; j < N; ++j) {
                     H[i][j] = 0;
                     //X[i][j] = 0;
                 }
             }
             t = 0;
-            for (i = 0; i < N; ++i) {
+            for (i = 0; i < N1; ++i) {
                 for (j = 0; j < N; ++j) {
                     if (G[i][j] == 1) {
                         t = 1;
@@ -764,7 +767,7 @@
             }
 
             if (GTEST == 1) {
-                for (i = 0; i < N; ++i) {
+                for (i = 0; i < N1; ++i) {
                     for (j = 0; j < N; ++j) {
                         t = G[i][j];
                         if (Math.random() > t * (1.0 - TPR) + (1 - t) * TNR) {
@@ -774,7 +777,7 @@
                         }
                     }
                 }
-                N_Test += N * N;
+                N_Test += N1 * N;
             }
             for (i = 0; i < N; ++i) {
                 for (j = 0; j < N; ++j) {
@@ -798,9 +801,9 @@
         }
         GTTPR = 1.0 * N_TP / (N_TP + N_FN);
         GTTNR = 1.0 * N_TN / (N_FP + N_TN);
-        GTRat = 1.0 * N_Test / (N * N * K);
+        GTRat = 1.0 * N_Test / (N1 * N * K);
         if (K == 1) {
-            s = "Usage Ratio:<br>" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%"
+            s = "Usage Ratio:<br>" + String(N_Test) + "/" + String(N1 * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%"
                 + "<br>Sensitivity:<br>" + N_TP + "/" + (N_TP + N_FN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:<br>"
                 + N_TN + "/" + (N_FP + N_TN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
             document.getElementById("opt-GT").innerHTML = s;
@@ -1056,10 +1059,10 @@
         K0 = K;
         p = 1.0 * NCC / NTS;
         N0 = Math.ceil(Math.sqrt(1.0 / p));
-        if (N0 < 5) N0 = 5;
+        if (N0 < 4) N0 = 4;
         var Rat1, TPR1, TNR1, Rat2, TPR2, TNR2, Rat3, TPR3, TNR3;
         var vRat1, vTPR1, vTNR1, vRat2, vTPR2, vTNR2, vRat3, vTPR3, vTNR3;
-        N = N0; K = Math.ceil(NTS / N / N); Group_Test_1W(); Rat1 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR1 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR1 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
+        N = N0; K = Math.ceil(NTS / N / N); N1 = N0; Group_Test_1W(); Rat1 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR1 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR1 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
         vRat1 = GTRat; vTPR1 = GTTPR; vTNR1 = GTTNR;
         N = N0; K = Math.ceil(NTS / N / N); Group_Test_2W(); Rat2 = Math.round(10000.0 * GTRat) / 100 + "%"; TPR2 = Math.round(10000.0 * GTTPR) / 100.0 + "%"; TNR2 = Math.round(10000.0 * GTTNR) / 100.0 + "%";
         vRat2 = GTRat; vTPR2 = GTTPR; vTNR2 = GTTNR;
@@ -1068,7 +1071,7 @@
         K = K0;
         var s;
         s = "<p  class='text-center'>" + NCC + " confirmed cases in " + NTS + " tests<br><table class='table table-hover table-bordered'><thead><th class='text-center'> p = " + Math.round(10000.0 * p) / 100 + "% </th><th  class='text-center'>Usage ratio/Number of tests</th><th  class='text-center'>Sensitivity/missed cases</th><th  class='text-center'>Specificity</th></thead>"
-            + "<tbody><tr><td  class='text-center'>Dorfman's pooling (w=" + N0 * N0 + ")</td><td  class='text-center'>" + Rat1 + "/" + Math.round(NTS * vRat1) + "</td><td  class='text-center'>" + TPR1 + "/" + Math.round(NCC * (1 - vTPR1)) + "</td><td  class='text-center'>" + TNR1 + "</td></tr>"
+            + "<tbody><tr><td  class='text-center'>Dorfman's pooling <br>(pool size =" + N0 * N0 + ")</td><td  class='text-center'>" + Rat1 + "/" + Math.round(NTS * vRat1) + "</td><td  class='text-center'>" + TPR1 + "/" + Math.round(NCC * (1 - vTPR1)) + "</td><td  class='text-center'>" + TNR1 + "</td></tr>"
             + "<tr><td  class='text-center'>2-Grid Method (w=" + N0 + ")</td><td  class='text-center'>" + Rat2 + "/" + Math.round(NTS * vRat2) + "</td><td  class='text-center'>" + TPR2 + "/" + Math.round(NCC * (1 - vTPR2)) + "</td><td  class='text-center'>" + TNR2 + "</td></tr>"
             + "<tr><td  class='text-center'>3-Grid Method (w=" + N0 + ")</td><td  class='text-center'>" + Rat3 + "/" + Math.round(NTS * vRat3) + "</td><td  class='text-center'>" + TPR3 + "/" + Math.round(NCC * (1 - vTPR3)) + "</td><td  class='text-center'>" + TNR3 + "</td></tr>"
             + "</tbody></table></p>";
@@ -1083,7 +1086,7 @@
         $("#compare2").hide();
 
 
-        var maxP = Number(slider_N.max) - 5;
+        var maxP = Number(slider_N.max) - 4;
         var p_old = p;
         var i;
         var P_X = new Array(maxP);
@@ -1095,8 +1098,8 @@
 
         var PXY1 = [], PXY2 = [], PXY3 = [];
         for (i = 0; i < maxP; ++i) {
-            N = i + 5;
-
+            N = i + 4;
+			N1 = N;
             // p = p_preset[i];
             //N = i + 4;
             p = 1.0 / N / N; //(i + 4) / (i + 4);
@@ -1148,7 +1151,7 @@
 
 
 
-        var maxP = Number(slider_N.max) - 5;
+        var maxP = Number(slider_N.max) - 4;
         var p_old = p;
         var i, N0;
         var P_X = new Array(maxP);
@@ -1162,7 +1165,8 @@
         var PXY21 = [], PXY22 = [], PXY23 = [];
         var PXY31 = [], PXY32 = [], PXY33 = [];
         for (i = 0; i < maxP; ++i) {
-            N = i + 5;
+            N = i + 4;
+			N1 = N;
             // p = p_preset[i];
             p = 1.0 / N / N; //(i + 5) / (i + 5);
             P_X[i] = p;//1.0/N/N;
