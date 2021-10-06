@@ -108,7 +108,7 @@
 
                                 </div>
                             </div>
-                            <div class="caption">Plate 1(◎ patients)</div>
+                            <div class="caption">Plate 1 (◎ patients)</div>
                         </div>
                     </div>
                     <div class="row">
@@ -132,12 +132,30 @@
                                 <div class="caption">Positive Patients</div>
                             </div>
                         </div>
-                        <div id="text_output">
-                            <div class="pool-outer card">
-                                <div class="card-body" id="opt-GT" style="padding: 1rem;"></div>
+                    </div>
+                    <div class="row" style="padding-top: 1em;">
+                        <div class="col-sm-4">
+                            <div class="pool-status1 card">
+                                <div class="card-header">Usage Ratio</div>
+                                <div class="card-body" id="status-usage"></div>
                             </div>
                         </div>
+                            
+                        <div class="col-sm-4">
+                            <div class="pool-status1 card">
+                                <div class="card-header">Sensitivity</div>
+                                <div class="card-body" id="status-sensi"></div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="pool-status1 card">
+                                <div class="card-header">Specificity</div>
+                                <div class="card-body" id="status-speci"></div>
+                            </div>
+                        </div>
+    
                     </div>
+
                 </div>
                 <div id="dashboard_new" class="dashboard jumbotron">
                     <div class="row plot_title">
@@ -443,6 +461,8 @@
 
     // G: The status(patient: 1/normal: 0) in the grid.
     var G = new Array(maxN);
+    var GTEST;
+
     for (var i = 0; i < G.length; ++i) {
         G[i] = new Array(maxN);
     }
@@ -624,36 +644,60 @@
 
     function output_grid(Show_Test) {
         var i, j, s = "<table><tr>";
-        $(".pool-grid").html('').css('grid-template-columns', 'auto '.repeat(N));
-        $(".pool-outer").width(N * 25 + (N + 1) * 5 + 20);
-        $(".pool-outer").height(N * 25 + (N + 1) * 5 + 20).show();
+        $(".pool-status").width(300);
+        $(".pool-status").show();
+        if (Show_Test >= 2) {
+            $(".pool-grid").html('').css('grid-template-columns', 'auto '.repeat(N));
+            $(".pool-outer").width(N * 25 + (N + 1) * 5 + 20);
+            $(".pool-outer").height(N * 25 + (N + 1) * 5 + 20).show();
 
-        for (i = 0; i < N; ++i) {
-            for (j = 0; j < N; ++j) {
-                s = s + "<td width='14pt'>" + String(G[i][j]) + "</td>";
-                if (G[i][j]) {
-                    var ptext = '◎';
-                } else {
-                    var ptext = '';
-                }
-                $(".pool-grid").append('<div class="grid">' + ptext + '</div>');
 
-            }
-            if (Show_Test >= 2) {
-                if (G[i][N] == 1) {
-                    s = s + "<td>P</td>";
-                    for (j = 0; j < N; ++j) {
-                        $("#pool1").find('.pool-grid').children('div:nth-child(' + String(i * N + j + 1) + ')').css('background-color', "#FCD9D5")
+            for (i = 0; i < N; ++i) {
+                for (j = 0; j < N; ++j) {
+                    s = s + "<td width='14pt'>" + String(G[i][j]) + "</td>";
+                    if (G[i][j]) {
+                        var ptext = '◎';
+                    } else {
+                        var ptext = '';
                     }
-                } else {
-                    s = s + "<td>N</td>";
+                    $(".pool-grid").append('<div class="grid">' + ptext + '</div>');
+
+                }
+                if (Show_Test >= 2) {
+                    if (G[i][N] == 1) {
+                        s = s + "<td>P</td>";
+                        for (j = 0; j < N; ++j) {
+                            $("#pool1").find('.pool-grid').children('div:nth-child(' + String(i * N + j + 1) + ')').css('background-color', "#FCD9D5")
+                        }
+                    } else {
+                        s = s + "<td>N</td>";
+                    }
+                }
+                s = s + "</tr>";
+            }
+        }else{
+            $(".pool-grid").html('').css('grid-template-columns', 'auto '.repeat(N));
+            $(".pool-outer").width(N * 25 + (N + 1) * 5 + 20);
+            $(".pool-outer").height(50).show();
+            
+            for (i = 0; i < N1; ++i) {
+                for (j = 0; j < N; ++j) {
+                   if (G[i][j]) {
+                        var ptext = '◎';
+                    } else {
+                        var ptext = '';
+                    }
+                    $(".pool-grid").append('<div class="grid">' + ptext + '</div>');
                 }
             }
-            s = s + "</tr>";
         }
         if (Show_Test == 1) {
-            if (G[N][0] == 1) {
-                $("#pool1").find('.pool-grid').children().css('background-color', "#FCD9D5")
+            for (i = 0; i < N1; ++i) {
+                for (j = 0; j < N; ++j) {
+                    if (G[i][j]==1) {
+                        $("#pool1").find('.pool-grid').children().css('background-color', "#FCD9D5");
+                    }
+                }
             }
         }
 
@@ -673,7 +717,7 @@
         }
         s = s + "</table>";
 
-        if (Show_Test >= 1) {
+        if (Show_Test >= 2) {
             $("#ppool").show();
             s = s + "<br>Number of Postive Tests:<br><table><tr>";
             for (i = 0; i < N; ++i) {
@@ -684,10 +728,24 @@
                 s = s + "</tr>";
             }
             s = s + "</table>";
+        } else {
+            for (i = 0; i < N1; ++i) {
+                for (j = 0; j < N; ++j) {
+                    if (GTEST == 1) {
+                    $("#ppool").find('.pool-grid').children('div:nth-child(' + String(i * N + j + 1) + ')').css('background-color', pcolor[Show_Test][1]).html(String(1))
+                    if (H[i][j] == 1) {
+                            $("#ppool").find('.pool-grid').children('div:nth-child(' + String(i * N + j + 1) + ')').css('background-color', pcolor[Show_Test][2]).html(String(2))
+                        }
+                    }else{
+                    $("#ppool").find('.pool-grid').children('div:nth-child(' + String(i * N + j + 1) + ')').css('background-color', pcolor[Show_Test][0]).html(String(0))
+
+                    }
+                }
+            }
         }
 
 
-        if (Show_Test >= 1) {
+        if (Show_Test >= 2) {
             s = s + "<br>Positive Patients:<br><table><tr>";
             for (i = 0; i < N; ++i) {
                 for (j = 0; j < N; ++j) {
@@ -695,6 +753,15 @@
                     $("#ppatient").find('.pool-grid').children('div:nth-child(' + String(i * N + j + 1) + ')').css('background-color', ppatcolor[H[i][j]])
                 }
                 s = s + "</tr>";
+            }
+        }else{
+            for (i = 0; i < N1; ++i) {
+                for (j = 0; j < N; ++j) {
+                    
+                    $("#ppatient").find('.pool-grid').children('div:nth-child(' + String(i * N + j + 1) + ')').css('background-color', ppatcolor[H[i][j]])
+
+                    
+                }
             }
         }
         s = s + "</table>";
@@ -734,7 +801,7 @@
         // Dorfman's pooling test
         var i, j, k, s, t, N_TP = 0, N_TN = 0, N_FP = 0, N_FN = 0, N_Test = 0;
         var NM = Number(slider_N.max);
-        var GTEST;
+        // var GTEST;
         var GNTPR = GTPR;//1.0*(TPR*(NM-N)+GTPR*(N-1))/(NM-1);
         var GNTNR = GTNR;//1.0*(TNR*(NM-N)+GTNR*(N-1))/(NM-1);
         for (k = 0; k < K; ++k) {
@@ -806,7 +873,10 @@
             s = "Usage Ratio:<br>" + String(N_Test) + "/" + String(N1 * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%"
                 + "<br>Sensitivity:<br>" + N_TP + "/" + (N_TP + N_FN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:<br>"
                 + N_TN + "/" + (N_FP + N_TN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
-            document.getElementById("opt-GT").innerHTML = s;
+            // document.getElementById("opt-GT").innerHTML = s;
+            document.getElementById("status-usage").innerHTML = String(N_Test) + "/" + String(N1 * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%";
+            document.getElementById("status-sensi").innerHTML = N_TP + "/" + (N_TP + N_FN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%";
+            document.getElementById("status-speci").innerHTML = N_TN + "/" + (N_FP + N_TN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%";
         }
         return;
     }
@@ -891,7 +961,10 @@
             s = "Usage Ratio:<br>" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%"
                 + "<br>Sensitivity:<br>" + N_TP + "/" + (N_TP + N_FN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:<br>"
                 + N_TN + "/" + (N_FP + N_TN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
-            document.getElementById("opt-GT").innerHTML = s;
+            // document.getElementById("opt-GT").innerHTML = s;
+            document.getElementById("status-usage").innerHTML = String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%";
+            document.getElementById("status-sensi").innerHTML = N_TP + "/" + (N_TP + N_FN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%";
+            document.getElementById("status-speci").innerHTML = N_TN + "/" + (N_FP + N_TN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%";
         }
         return;
     }
@@ -1041,7 +1114,10 @@
             s = "Usage Ratio:<br>" + String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%"
                 + "<br>Sensitivity:<br>" + N_TP + "/" + (N_TP + N_FN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%<br>Specificity:<br>"
                 + N_TN + "/" + (N_FP + N_TN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%<br>";
-            document.getElementById("opt-GT").innerHTML = s;
+            // document.getElementById("opt-GT").innerHTML = s;
+            document.getElementById("status-usage").innerHTML = String(N_Test) + "/" + String(N * N * K) + "~" + Math.round(10000.0 * GTRat) / 100.0 + "%";
+            document.getElementById("status-sensi").innerHTML = N_TP + "/" + (N_TP + N_FN) + "~" + Math.round(10000.0 * GTTPR) / 100.0 + "%";
+            document.getElementById("status-speci").innerHTML = N_TN + "/" + (N_FP + N_TN) + "~" + Math.round(10000.0 * GTTNR) / 100.0 + "%";
         }
         return;
     }
